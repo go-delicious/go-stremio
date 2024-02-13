@@ -21,8 +21,7 @@ func main() {
 	addon.HandleMovieCatalog("Recommended Movies", RecommendedMoviesHandler)
 	addon.HandleSeriesCatalog("Top Series", TopSeriesHandler)
 
-	// make sure the port is not already in use
-	addon.ListenAndServe("8080")
+	addon.ListenAndServe("3000")
 }
 
 func TopMoviesHandler(w http.ResponseWriter, r *http.Request) {

@@ -151,18 +151,10 @@ func (a *Addon) typeExists(mediaType manifest.MediaType) bool {
 // Serve the cached manifest. This method uses RLock() for concurrent reads.
 func (a *Addon) HandleManifest() {
 	a.Mux.HandleFunc("GET /manifest.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Cache-Control", "public, max-age=3600")
-		w.Header().Set("Connection", "keep-alive")
-
 		if err := json.NewEncoder(w).Encode(a.Manifest); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": "failed to encode manifest"})
-			return
 		}
-
-		// log the request
-		log.Println(r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
 	})
 }
 
@@ -171,7 +163,7 @@ func (a *Addon) ListenAndServe(port string) {
 
 	log.Printf("Addon running on http://localhost:%s/manifest.json", port)
 	log.Printf("To add addon to streamio, go to stremio://localhost:%s/manifest.json", port)
-	if err := http.ListenAndServe(":"+port, DefaultMiddleware(http.DefaultServeMux)); err != nil {
+	if err := http.ListenAndServe(":"+port, DefaultMiddleware(a.Mux)); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -182,6 +174,7 @@ func DefaultMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Cache-Control", "public, max-age=3600")
 		w.Header().Set("Content-Type", "application/json")
+		log.Println(r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
 }
